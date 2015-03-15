@@ -18,10 +18,14 @@ def main():
             app_stop()
 
 def run_loop():
+    from select import select
     while True:
         http_loop()
         app_loop()
-        time.sleep(0.02)
+
+        # pause the run loop until we see any new inputs
+        # this is more efficient than a sleep.
+        select([httpd, app_process.stdout, app_process.stderr], [], [])
 
 ########
 # HTTP #
@@ -38,7 +42,7 @@ class Handler(BaseHTTPRequestHandler):
             content_length = self.headers['Content-Length']
 
             if content_length:
-                app_path = self.rfile.read(15)
+                app_path = self.rfile.read(int(content_length))
 
                 app_start(app_path=app_path)
 
@@ -81,10 +85,11 @@ def app_start(app_path):
 
     app_process = subprocess.Popen([app_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    flags = fcntl(app_process.stdout.fileno(), F_GETFL) # get current app_process.stdout flags
-    fcntl(app_process.stdout.fileno(), F_SETFL, flags | os.O_NONBLOCK)
-    flags = fcntl(app_process.stderr.fileno(), F_GETFL) # get current app_process.stderr flags
-    fcntl(app_process.stderr.fileno(), F_SETFL, flags | os.O_NONBLOCK)
+    # set the stdout and stderr pipes to be non-blocking
+    flags = fcntl(app_process.stdout, F_GETFL)
+    fcntl(app_process.stdout, F_SETFL, flags | os.O_NONBLOCK)
+    flags = fcntl(app_process.stderr, F_GETFL)
+    fcntl(app_process.stderr, F_SETFL, flags | os.O_NONBLOCK)
 
 
 def app_stop():
