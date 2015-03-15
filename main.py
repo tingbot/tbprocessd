@@ -4,6 +4,7 @@ import os, time, socket, subprocess, logging
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from fcntl import fcntl, F_GETFL, F_SETFL
+from select import select
 
 HOME_APP = os.environ.get('HOME_APP', 'testing/home.py')
 
@@ -18,7 +19,6 @@ def main():
             app_stop()
 
 def run_loop():
-    from select import select
     while True:
         http_loop()
         app_loop()
