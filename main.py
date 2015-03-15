@@ -24,7 +24,8 @@ def run_loop():
         app_loop()
 
         # pause the run loop until we see any new inputs
-        # this is more efficient than a sleep.
+        # this is more efficient than a sleep, since it only wakes the process when
+        # there's something to do
         select([httpd, app_process.stdout, app_process.stderr], [], [])
 
 ########
