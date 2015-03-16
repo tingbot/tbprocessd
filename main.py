@@ -2,9 +2,19 @@
 
 import os, time, socket, subprocess, logging
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
+try:
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+except ImportError:
+    from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+
 from fcntl import fcntl, F_GETFL, F_SETFL
 from select import select
+from io import BlockingIOError
+
+try:
+    from time import monotonic
+except ImportError:
+    monotonic = time.time
 
 HOME_APP = os.environ.get('HOME_APP', 'testing/home.py')
 
@@ -109,9 +119,9 @@ def app_stop():
     if app_process.returncode is None:
         app_process.terminate()
         # wait for termination (2 seconds)
-        wait_start = time.perf_counter()
+        wait_start = monotonic()
 
-        while app_is_running() and time.perf_counter() < wait_start + 2.0:
+        while app_is_running() and monotonic() < wait_start + 2.0:
             app_pipe_output()
             time.sleep(0.02)
 
@@ -140,6 +150,11 @@ def app_pipe_output():
             udp_send(stdout)
     except BlockingIOError:
         pass
+    except OSError as ex:
+        if ex.errno == 35:
+            pass
+        else:
+            raise
 
     try:
         stderr = os.read(app_process.stderr.fileno(), 65535)
@@ -148,6 +163,11 @@ def app_pipe_output():
             udp_send(stderr)
     except BlockingIOError:
         pass
+    except OSError as ex:
+        if ex.errno == 35:
+            pass
+        else:
+            raise
 
 def app_exec_args(app_path):
     if os.path.isfile(app_path):
