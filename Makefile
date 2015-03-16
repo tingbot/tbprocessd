@@ -1,12 +1,16 @@
 .PHONY: build install
 
-BIN := /usr/local/bin/
+BUILD_ROOT = build
+BIN := $(BUILD_ROOT)/usr/local/bin/
 
 build:
+	rm -rf $(BUILD_ROOT) || true
+	mkdir -p "$(BIN)"
 	install -m 755 tbopen $(BIN)
 	install -m 755 tbtail $(BIN)
 	install -m 755 main.py $(BIN)/tbprocessd
-	install -m 644 init.conf /etc/init/tbprocessd.conf
+	mkdir -p "$(BUILD_ROOT)/etc/init"
+	install -m 644 upstart.conf $(BUILD_ROOT)/etc/init/tbprocessd.conf
 
-install:
+install: build
 	rsync -rl --exclude '.DS_Store' build/* /
