@@ -84,7 +84,13 @@ def app_start(app_path):
     if app_process:
         app_stop()
 
-    app_process = subprocess.Popen([app_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    args = app_exec_args(app_path)
+
+    if args is None:
+        logging.error('Could not launch app \'%s\', no executable found')
+        return
+
+    app_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # set the stdout and stderr pipes to be non-blocking
     flags = fcntl(app_process.stdout, F_GETFL)
@@ -142,6 +148,19 @@ def app_pipe_output():
             udp_send(stderr)
     except BlockingIOError:
         pass
+
+def app_exec_args(app_path):
+    if os.path.isfile(app_path):
+        return [app_path]
+    
+    if os.path.isdir(app_path):
+        main_file = os.path.join(app_path, 'main')
+        if os.path.isfile(main_file):
+            return [main_file]
+
+        main_py_file = os.path.join(app_path, 'main.py')
+        if os.path.isfile(main_py_file):
+            return ['python3', main_py_file]
 
 #######
 # UDP #
