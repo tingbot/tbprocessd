@@ -41,7 +41,12 @@ def run_loop():
         # pause the run loop until we see any new inputs
         # this is more efficient than a sleep, since it only wakes the process when
         # there's something to do
-        select([httpd, app_process.stdout, app_process.stderr], [], [])
+        if app_process:
+            wait_fds = [httpd, app_process.stdout, app_process.stderr]
+        else:
+            wait_fds = [httpd]
+
+        select(wait_fds, [], [])
 
 ########
 # HTTP #
@@ -162,6 +167,9 @@ class terminal_colors:
     end = '\033[0m'
 
 def app_pipe_output():
+    if app_process is None:
+        return
+
     stdout = app_nonblocking_read(app_process.stdout)
 
     if stdout:
