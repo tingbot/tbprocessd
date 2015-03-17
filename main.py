@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, time, socket, subprocess, logging
+import os, time, socket, subprocess, logging, errno
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -147,30 +147,39 @@ def app_is_running():
     app_process.poll()
     return app_process.returncode is None
 
-def app_pipe_output():
-    try:
-        stdout = os.read(app_process.stdout.fileno(), 65535)
-        if len(stdout) > 0:
-            print('out: %s' % stdout.decode('utf-8', 'replace'))
-            udp_send(stdout)
-    except BlockingIOError:
-        pass
-    except OSError as ex:
-        if ex.errno == 35:
-            pass
-        else:
-            raise
+class terminal_colors:
+    red = '\033[31m'
+    green = '\033[32m'
+    yellow = '\033[33m'
+    blue = '\033[34m'
+    cyan = '\033[36m'
+    bright_red = '\033[91m'
+    bright_green = '\033[92m'
 
+    bold = '\033[1m'
+    faint = '\033[2m'
+
+    end = '\033[0m'
+
+def app_pipe_output():
+    stdout = app_nonblocking_read(app_process.stdout)
+
+    if stdout:
+        print(terminal_colors.faint + stdout + terminal_colors.end)
+        udp_send(stdout)
+
+    stderr = app_nonblocking_read(app_process.stderr)
+
+    if stderr:
+        print(terminal_colors.faint + terminal_colors.bright_red + stderr + terminal_colors.end)
+        udp_send(terminal_colors.red + stderr + terminal_colors.end)
+
+def app_nonblocking_read(fd):
     try:
-        stderr = os.read(app_process.stderr.fileno(), 65535)
-        if len(stderr) > 0:
-            print('err: %s' % stderr.decode('utf-8', 'replace'))
-            udp_send(stderr)
-    except BlockingIOError:
-        pass
+        return os.read(fd.fileno(), 65535)
     except OSError as ex:
-        if ex.errno == 35:
-            pass
+        if ex.errno == errno.EWOULDBLOCK:
+            return None
         else:
             raise
 
