@@ -18,6 +18,10 @@ except ImportError:
 
 HOME_APP = os.environ.get('HOME_APP', 'testing/home.py')
 
+# set the python unbuffered flag
+# this makes the app's logs stream to UDP realtime, but only for python programs
+# other programs will have to manually call `flush` in their logging routines
+os.environ['PYTHONUNBUFFERED'] = '1'
 
 def main():
     http_setup()
