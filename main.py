@@ -102,7 +102,7 @@ def app_start(app_path):
     args = app_exec_args(app_path)
 
     if args is None:
-        logging.error('Could not launch app \'%s\', no executable found')
+        logging.error('Could not launch app \'%s\', no executable found' % app_path)
         return
 
     app_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
