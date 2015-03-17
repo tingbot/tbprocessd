@@ -176,7 +176,7 @@ def app_pipe_output():
 
 def app_nonblocking_read(fd):
     try:
-        return os.read(fd.fileno(), 65535)
+        return os.read(fd.fileno(), 1480)
     except OSError as ex:
         if ex.errno == errno.EWOULDBLOCK:
             return None
