@@ -202,7 +202,7 @@ def app_exec_args(app_path):
 
         main_py_file = os.path.join(app_path, 'main.py')
         if os.path.isfile(main_py_file):
-            return ['python3', main_py_file]
+            return ['python', main_py_file]
 
 #######
 # UDP #
