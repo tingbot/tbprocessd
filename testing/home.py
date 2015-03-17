@@ -3,6 +3,8 @@ from glob import glob
 import os
 import subprocess
 
+os.environ['PATH'] += ':.'
+
 folder = os.path.dirname(__file__)
 
 print ''

@@ -18,7 +18,6 @@ except ImportError:
 
 HOME_APP = os.environ.get('HOME_APP', 'testing/home.py')
 
-os.environ['PATH'] += ':.'
 
 def main():
     http_setup()
