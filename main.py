@@ -104,13 +104,18 @@ def app_start(app_path):
     if app_process:
         app_stop()
 
-    args = app_exec_args(app_path)
+    args, working_directory = app_exec_info(app_path)
 
     if args is None:
         logging.error('Could not launch app \'%s\', no executable found' % app_path)
         return
 
-    app_process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    app_process = subprocess.Popen(
+        args, 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.PIPE,
+        cwd=working_directory)
 
     # set the stdout and stderr pipes to be non-blocking
     flags = fcntl(app_process.stdout, F_GETFL)
@@ -191,18 +196,22 @@ def app_nonblocking_read(fd):
         else:
             raise
 
-def app_exec_args(app_path):
+def app_exec_info(app_path):
+    """ Returns a pair ([args], working_directory) """
+
+    app_path = os.path.abspath(app_path)
+
     if os.path.isfile(app_path):
-        return [app_path]
+        return ([app_path], os.path.dirname(app_path))
     
     if os.path.isdir(app_path):
         main_file = os.path.join(app_path, 'main')
         if os.path.isfile(main_file):
-            return [main_file]
+            return ([main_file], app_path)
 
         main_py_file = os.path.join(app_path, 'main.py')
         if os.path.isfile(main_py_file):
-            return ['python', main_py_file]
+            return (['python', main_py_file], app_path)
 
 #######
 # UDP #
