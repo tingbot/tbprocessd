@@ -212,6 +212,8 @@ def app_exec_info(app_path):
         main_py_file = os.path.join(app_path, 'main.py')
         if os.path.isfile(main_py_file):
             return (['python', main_py_file], app_path)
+    
+    return (None, None)
 
 #######
 # UDP #
