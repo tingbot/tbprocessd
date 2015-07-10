@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, socket, subprocess, logging, errno
+import os, time, socket, subprocess, logging, errno, json
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -179,13 +179,13 @@ def app_pipe_output():
 
     if stdout:
         print(terminal_colors.faint + stdout + terminal_colors.end)
-        udp_send(stdout)
+        udp_send({'stdout': stdout})
 
     stderr = app_nonblocking_read(app_process.stderr)
 
     if stderr:
         print(terminal_colors.faint + terminal_colors.bright_red + stderr + terminal_colors.end)
-        udp_send(terminal_colors.red + stderr + terminal_colors.end)
+        udp_send({'stderr': stderr})
 
 def app_nonblocking_read(fd):
     try:
@@ -226,7 +226,9 @@ def udp_setup():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def udp_send(msg):
-    udp_socket.sendto(msg, ('127.0.0.1', 10452))
+    message_str = json.dumps(msg) + '\n'
+
+    udp_socket.sendto(message_str, ('127.0.0.1', 10452))
 
 ########
 # MAIN #
