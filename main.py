@@ -123,6 +123,8 @@ def app_start(app_path):
     flags = fcntl(app_process.stderr, F_GETFL)
     fcntl(app_process.stderr, F_SETFL, flags | os.O_NONBLOCK)
 
+    udp_send({'started': app_process.pid, 'path': app_path})
+
 
 def app_stop():
     global app_process
@@ -131,7 +133,9 @@ def app_stop():
     app_pipe_output()
 
     app_process.poll()
-    if app_process.returncode is None:
+    needs_termination = app_process.returncode is None
+
+    if needs_termination:
         app_process.terminate()
         # wait for termination (2 seconds)
         wait_start = monotonic()
@@ -148,6 +152,8 @@ def app_stop():
             while app_is_running():
                 app_pipe_output()
                 time.sleep(0.02)
+
+    udp_send({'ended': app_process.pid, 'code': app_process.returncode, 'terminated': needs_termination})
 
     app_process = None
 
