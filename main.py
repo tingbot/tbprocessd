@@ -230,11 +230,13 @@ udp_socket = None
 def udp_setup():
     global udp_socket
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # send only on the loopback interface
+    udp_socket.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton('127.0.0.1'))
 
 def udp_send(msg):
     message_str = json.dumps(msg) + '\n'
-
-    udp_socket.sendto(message_str, ('127.0.0.1', 10452))
+    # send to the multicast 'all hosts' address
+    udp_socket.sendto(message_str, ('224.0.0.1', 10452))
 
 ########
 # MAIN #
