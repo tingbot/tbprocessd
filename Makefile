@@ -1,7 +1,7 @@
 .PHONY: build install
 
 BUILD_ROOT = build
-BIN := $(BUILD_ROOT)/usr/local/bin/
+BIN := $(BUILD_ROOT)/usr/bin
 
 build:
 	rm -rf $(BUILD_ROOT) || true
