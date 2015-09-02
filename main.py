@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, socket, subprocess, logging, errno, json
+import os, time, socket, subprocess, logging, errno, json, zmq
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -25,7 +25,7 @@ os.environ['PYTHONUNBUFFERED'] = '1'
 
 def main():
     http_setup()
-    udp_setup()
+    log_stream_setup()
 
     try:
         run_loop()
@@ -123,7 +123,7 @@ def app_start(app_path):
     flags = fcntl(app_process.stderr, F_GETFL)
     fcntl(app_process.stderr, F_SETFL, flags | os.O_NONBLOCK)
 
-    udp_send({'started': app_process.pid, 'path': app_path})
+    log_stream_send({'started': app_process.pid, 'path': app_path})
 
 
 def app_stop():
@@ -153,7 +153,7 @@ def app_stop():
                 app_pipe_output()
                 time.sleep(0.02)
 
-    udp_send({'ended': app_process.pid, 'code': app_process.returncode, 'terminated': needs_termination})
+    log_stream_send({'ended': app_process.pid, 'code': app_process.returncode, 'terminated': needs_termination})
 
     app_process = None
 
@@ -185,13 +185,13 @@ def app_pipe_output():
 
     if stdout:
         print(terminal_colors.faint + stdout + terminal_colors.end)
-        udp_send({'stdout': stdout})
+        log_stream_send({'stdout': stdout})
 
     stderr = app_nonblocking_read(app_process.stderr)
 
     if stderr:
         print(terminal_colors.faint + terminal_colors.bright_red + stderr + terminal_colors.end)
-        udp_send({'stderr': stderr})
+        log_stream_send({'stderr': stderr})
 
 def app_nonblocking_read(fd):
     try:
@@ -221,22 +221,21 @@ def app_exec_info(app_path):
     
     return (None, None)
 
-#######
-# UDP #
-#######
+##############
+# LOG STREAM #
+##############
 
-udp_socket = None
+zmq_socket = None
 
-def udp_setup():
-    global udp_socket
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # send only on the loopback interface
-    udp_socket.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton('127.0.0.1'))
+def log_stream_setup():
+    global zmq_socket
+    context = zmq.Context()
+    zmq_socket = context.socket(zmq.PUB)
+    zmq_socket.bind('tcp://127.0.0.1:10452')
 
-def udp_send(msg):
+def log_stream_send(msg):
     message_str = json.dumps(msg) + '\n'
-    # send to the multicast 'all hosts' address
-    udp_socket.sendto(message_str, ('224.0.0.1', 10452))
+    zmq_socket.send(message_str)
 
 ########
 # MAIN #
