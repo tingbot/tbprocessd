@@ -104,12 +104,7 @@ def app_start(app_path):
     if app_process:
         app_stop()
 
-    args, working_directory = app_exec_info(app_path)
-
-    if args is None:
-        logging.error('Could not launch app \'%s\', no executable found' % app_path)
-        return
-
+    args = ['python', '-m', 'tbtool', 'tingbot_run', app_path]
 
     app_process = subprocess.Popen(
         args, 
@@ -201,25 +196,6 @@ def app_nonblocking_read(fd):
             return None
         else:
             raise
-
-def app_exec_info(app_path):
-    """ Returns a pair ([args], working_directory) """
-
-    app_path = os.path.abspath(app_path)
-
-    if os.path.isfile(app_path):
-        return ([app_path], os.path.dirname(app_path))
-    
-    if os.path.isdir(app_path):
-        main_file = os.path.join(app_path, 'main')
-        if os.path.isfile(main_file):
-            return ([main_file], app_path)
-
-        main_py_file = os.path.join(app_path, 'main.py')
-        if os.path.isfile(main_py_file):
-            return (['python', main_py_file], app_path)
-    
-    return (None, None)
 
 ##############
 # LOG STREAM #
