@@ -107,10 +107,9 @@ def app_start(app_path):
     args = ['python', '-m', 'tbtool', 'tingbot_run', app_path]
 
     app_process = subprocess.Popen(
-        args, 
-        stdout=subprocess.PIPE, 
-        stderr=subprocess.PIPE,
-        cwd=working_directory)
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
 
     # set the stdout and stderr pipes to be non-blocking
     flags = fcntl(app_process.stdout, F_GETFL)
