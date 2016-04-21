@@ -1,2 +1,0 @@
-pyzmq==14.7.0
-requests

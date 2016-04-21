@@ -71,7 +71,7 @@ def follow(app_path, raw):
             break
 
 
-if __name__ == '__main__':
+def main():
     options, app_path = parse_arguments()
 
     if options.follow:
@@ -86,3 +86,6 @@ if __name__ == '__main__':
 
     if options.follow:
         tail_thread.join()
+
+if __name__ == '__main__':
+    main()

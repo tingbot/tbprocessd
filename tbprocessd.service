@@ -1,0 +1,12 @@
+# Systemd service config to start tbprocessd at boot
+# Install by doing:
+# sudo cp tbprocessd.service /etc/init.d
+
+[Unit]
+Description=tbprocessd
+
+[Service]
+ExecStart=/usr/local/bin/tbprocessd
+
+[Install]
+WantedBy=multi-user.target

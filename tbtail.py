@@ -19,7 +19,7 @@ class terminal_colors:
     end = '\033[0m'
 
 
-if __name__ == '__main__':
+def main():
     parser = OptionParser()
 
     parser.add_option('', '--raw',
@@ -46,3 +46,7 @@ if __name__ == '__main__':
             if 'stderr' in message:
                 sys.stdout.write(terminal_colors.red + message['stderr'] + terminal_colors.end)
                 sys.stdout.flush()
+
+
+if __name__ == '__main__':
+    main()

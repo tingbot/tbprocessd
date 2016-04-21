@@ -1,24 +1,15 @@
 # Setup
 
-- install socat (used by tbtail): `$ sudo apt-get install socat`
-
-Might remove this dependency by writing a simple UDP receiver in python but it's okay for now.
-
-- install upstart (used to run tbprocessd): `$ sudo apt-get install upstart`
-
-Didn't realise this wasn't standard on the Pi. It does keep-alive though, so maybe worth it?
-
 Running in development mode:
 
-    $ python main.py
+    $ python tbprocessd.py
 
 Installing (on Raspberry Pi):
 
-    $ make build
-    $ sudo make install
+    $ sudo python setup.py install
+    $ sudo cp tbprocessd.service /etc/init.d
 
-This installs the binary `tbprocessd` and the utility scripts (`tbopen` and `tbtail`). Reboot to
-start upstart and thus tbprocessd.
+This installs the binary `tbprocessd` and the utility scripts (`tbopen` and `tbtail`). 
 
 # What does it do?
                                                           
@@ -111,7 +102,7 @@ If you want to run without installing you just need to set the HOME_APP variable
 want tbprocessd to run by default. Example terminal session:
 
     $ export HOME_APP=../tbhome
-    $ python main.py &
+    $ python tbprocessd.py &
     $ ./tbtail
     ...
     ^C
