@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="tbprocessd",
     py_modules=['tbprocessd', 'tbopen', 'tbtail'],
-    version='0.2',
+    version='0.3',
     entry_points={'console_scripts': [
         'tbprocessd = tbprocessd:main',
         'tbopen = tbopen:main',
