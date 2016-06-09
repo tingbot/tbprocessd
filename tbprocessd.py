@@ -17,6 +17,7 @@ except ImportError:
     monotonic = time.time
 
 HOME_APP = os.environ.get('HOME_APP', 'testing/home.py')
+STARTUP_APP = os.environ.get('STARTUP_APP', HOME_APP)
 
 # set the python unbuffered flag
 # this makes the app's logs stream to UDP realtime, but only for python programs
@@ -26,6 +27,8 @@ os.environ['PYTHONUNBUFFERED'] = '1'
 def main():
     http_setup()
     log_stream_setup()
+
+    app_start(STARTUP_APP)
 
     try:
         run_loop()
