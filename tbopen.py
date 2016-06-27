@@ -79,6 +79,7 @@ def main():
             'app_path': app_path,
             'raw': options.raw,
         })
+        tail_thread.daemon = True
         tail_thread.start()
 
     r = requests.post('http://127.0.0.1:10451/run', data=app_path)
