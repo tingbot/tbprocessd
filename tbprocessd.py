@@ -137,12 +137,20 @@ def app_stop():
         # wait for termination (2 seconds)
         wait_start = monotonic()
 
-        while app_is_running() and monotonic() < wait_start + 2.0:
+        while app_is_running() and monotonic() < wait_start + 5.0:
             app_pipe_output()
             time.sleep(0.02)
 
         if app_is_running():
-            logging.warning('App did not terminate 2 seconds after SIGTERM. Sending SIGKILL...')
+            logging.warning('App did not terminate 5 seconds after SIGTERM. Sending SIGTERM again...')
+            app_process.terminate()
+
+        while app_is_running() and monotonic() < wait_start + 10.0:
+            app_pipe_output()
+            time.sleep(0.02)
+
+        if app_is_running():
+            logging.warning('App did not terminate 10 seconds after SIGTERM. Sending SIGKILL...')
             # send SIGKILL and wait indefinitely for termination
             app_process.kill()
 
