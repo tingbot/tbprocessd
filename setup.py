@@ -11,7 +11,7 @@ setup(
         'tbbuttonsd = tbbuttonsd:main',
     ]},
     install_requires=[
-        'pyzmq==14.7.0',
+        'pyzmq>=14.4.0',
         'requests',
         'tingbot-python>=0.4.1',
     ],
