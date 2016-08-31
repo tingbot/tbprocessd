@@ -1,4 +1,16 @@
-# Setup
+# tbprocessd
+
+This daemon launches apps on Tingbot. Because there's only one screen, there can be only one
+app running at once. Tbprocessd also collects the log messages from the running app and makes
+them available to stream over a ZMQ socket.
+
+Commands are sent to the daemon via HTTP. Utilities `tbopen` and `tbtail` are supplied to simplify
+this process.
+
+Also included is `tbbuttonsd`, which monitors button presses on the Tingbot and calls tbprocessd
+when the 'home' combo is pressed.
+
+## Setup
 
 Running in development mode:
 
@@ -11,7 +23,7 @@ Installing (on Raspberry Pi):
 
 This installs the binary `tbprocessd` and the utility scripts (`tbopen` and `tbtail`). 
 
-# What does it do?
+## What does it do?
                                                           
           1. “tbprocessd runs the home screen”            
     ------------------------------------------------      
@@ -19,7 +31,7 @@ This installs the binary `tbprocessd` and the utility scripts (`tbopen` and `tbt
                                             Λ             
            ┌─────────────────┐             ╱ ╲            
            │                 │   logs     ╱   ╲           
-           │   tbprocessd    │──────────▶╳ UDP ╳          
+           │   tbprocessd    │──────────▶╳ ZMQ ╳          
            │                 │            ╲   ╱           
            └─────────────────┘             ╲ ╱            
                │        ▲                   V             
@@ -70,7 +82,7 @@ something like `$ tbopen /apps/weather`.
                                             Λ             
            ┌─────────────────┐             ╱ ╲            
            │                 │   logs     ╱   ╲           
-           │   tbprocessd    │──────────▶╳ UDP ╳          
+           │   tbprocessd    │──────────▶╳ ZMQ ╳          
            │                 │            ╲   ╱           
            └─────────────────┘             ╲ ╱            
                     │   ▲                   V             
@@ -96,7 +108,7 @@ but might also be useful when testing the home screen.
 
 When the weather app exits, Home Screen will be launched again.
 
-# Running without installing
+## Running without installing
 
 If you want to run without installing you just need to set the HOME_APP variable to whatever you
 want tbprocessd to run by default. Example terminal session:
