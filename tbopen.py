@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import threading, requests, sys, json, os, socket
+import threading, requests, sys, json, os, zmq
 from optparse import OptionParser
 
 class terminal_colors:
@@ -38,55 +38,46 @@ def parse_arguments():
     return options, args[0]
 
 
-def follow(app_path, raw):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(('127.0.0.1', 10452))
-
-    fd = sock.makefile('r')
-
-    messages_iterator = (json.loads(line) for line in fd)
-
-    # wait for the start of the process
-    for message in messages_iterator:
-        if 'started' in message and message['path'] == app_path:
-            if raw:
-                sys.stdout.write(json.dumps(message) + '\n')
-            else:
-                print 'tbopen: App started as PID %i' % message['started']
-            break
-
-    # echo all the logs until the ended message
-    for message in messages_iterator:
-        if raw:
-            sys.stdout.write(json.dumps(message) + '\n')
-        else:
-            if 'stdout' in message:
-                sys.stdout.write(message['stdout'])
-                sys.stdout.flush()
-            if 'stderr' in message:
-                sys.stdout.write(terminal_colors.red + message['stderr'] + terminal_colors.end)
-                sys.stdout.flush()
-        if 'ended' in message:
-            break
-
-
 def main():
     options, app_path = parse_arguments()
 
     if options.follow:
-        tail_thread = threading.Thread(target=follow, kwargs={
-            'app_path': app_path,
-            'raw': options.raw,
-        })
-        tail_thread.daemon = True
-        tail_thread.start()
+        context = zmq.Context()
+        socket = context.socket(zmq.SUB)
+        socket.connect('tcp://127.0.0.1:10452')
+        socket.setsockopt(zmq.SUBSCRIBE, '')
 
     r = requests.post('http://127.0.0.1:10451/run', data=app_path)
     r.raise_for_status()
 
     if options.follow:
-        tail_thread.join()
+        app_has_started = False
+
+        while True:
+            line = socket.recv()
+            message = json.loads(line)
+
+            if not app_has_started:
+                if 'started' in message and message['path'] == app_path:
+                    if options.raw:
+                        sys.stdout.write(json.dumps(message) + '\n')
+                    else:
+                        print 'tbopen: App started as PID %i' % message['started']
+                    app_has_started = True
+            else:
+                if options.raw:
+                    sys.stdout.write(json.dumps(message) + '\n')
+                else:
+                    if 'stdout' in message:
+                        sys.stdout.write(message['stdout'])
+                        sys.stdout.flush()
+                    if 'stderr' in message:
+                        sys.stdout.write(terminal_colors.red + message['stderr'] + terminal_colors.end)
+                        sys.stdout.flush()
+                    if 'ended' in message:
+                        print 'tbopen: App ended with code: %i' % message['code']
+                if 'ended' in message:
+                    break
 
 if __name__ == '__main__':
     main()
