@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os, time, socket, subprocess, logging, errno, json, zmq
+import os, time, socket, subprocess, logging, errno, json, sys, textwrap, string
+import zmq
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -24,7 +25,12 @@ STARTUP_APP = os.environ.get('STARTUP_APP', HOME_APP)
 # other programs will have to manually call `flush` in their logging routines
 os.environ['PYTHONUNBUFFERED'] = '1'
 
+verbose = False
+
 def main():
+    console_setup()
+    console_message('tbprocessd starting...')
+
     http_setup()
     log_stream_setup()
 
@@ -77,6 +83,10 @@ class Handler(BaseHTTPRequestHandler):
 
         self.send_error(404)
 
+    def log_message(self, *args, **kwargs):
+        if verbose:
+            super(Handler, self).log_message(*args, **kwargs)
+
 def http_setup():
     global httpd
 
@@ -106,6 +116,8 @@ def app_start(app_path):
     global app_process
     if app_process:
         app_stop()
+
+    console_message('Starting %s...' % app_path)
 
     args = ['python', '-m', 'tbtool', 'tingbot_run', app_path]
 
@@ -189,13 +201,13 @@ def app_pipe_output():
     stdout = app_nonblocking_read(app_process.stdout)
 
     if stdout:
-        print(terminal_colors.faint + stdout + terminal_colors.end)
+        sys.stdout.write(stdout)
         log_stream_send({'stdout': stdout})
 
     stderr = app_nonblocking_read(app_process.stderr)
 
     if stderr:
-        print(terminal_colors.faint + terminal_colors.bright_red + stderr + terminal_colors.end)
+        sys.stderr.write(stderr)
         log_stream_send({'stderr': stderr})
 
 def app_nonblocking_read(fd):
@@ -222,6 +234,56 @@ def log_stream_setup():
 def log_stream_send(msg):
     message_str = json.dumps(msg) + '\n'
     zmq_socket.send(message_str)
+
+###########
+# CONSOLE #
+###########
+
+rows = None
+columns = None
+wrapper = None
+
+def console_setup():
+    global rows, columns, wrapper
+
+    try:
+        stty_output = subprocess.check_output(['stty', 'size']).split()
+        rows = int(stty_output[0])
+        columns = int(stty_output[1])
+    except subprocess.CalledProcessError:
+        rows = 0
+        columns = 0
+
+    wrapper = textwrap.TextWrapper(
+        width=columns-4,
+        initial_indent='  ',
+        subsequent_indent='  ')
+
+def console_message(message):
+    # clear the screen
+    sys.stdout.write("\x1b[2J\x1b[H")
+
+    lines = wrapper.wrap(message)
+
+    before_padding_lines_count = (rows - len(lines)) // 2
+    after_padding_lines_count = rows - len(lines) - before_padding_lines_count
+
+    if before_padding_lines_count > 0:
+        before_padding_lines = '\n' * before_padding_lines_count
+    else:
+        before_padding_lines = ''
+
+    sys.stdout.write(before_padding_lines)
+    
+    for line in lines:
+        sys.stdout.write(string.center(line, columns) + '\n')
+
+    if after_padding_lines_count > 0:
+        after_padding_lines = '\n' * after_padding_lines_count
+    else:
+        after_padding_lines = ''
+
+    sys.stdout.write(after_padding_lines)
 
 ########
 # MAIN #
