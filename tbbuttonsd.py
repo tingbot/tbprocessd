@@ -23,7 +23,7 @@ def process_combo_events():
             print(combo)
             print('Action:')
             print(action)
-            subprocess.call(action)
+            subprocess.call(shlex.split(action))
 
         queue.task_done()
 
