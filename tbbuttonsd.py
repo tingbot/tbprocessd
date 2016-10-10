@@ -31,19 +31,17 @@ def process_combo_events():
 def load_json(filename):
     try:
         with open(filename, 'r') as fp:
-            result = json.load(fp)
-            return result
+            return json.load(fp)
     except ValueError:
         raise ValueError('Failed to load %s because it\'s not a valid JSON file' % filename)
-    except IOError:
-        #either non-existent file or empty filename
-        return {}
-        
+
 def load_config():
     if os.path.exists('tbbuttonsd.conf'):
         config = load_json('tbbuttonsd.conf')
     elif os.path.exists('/etc/tbbuttonsd.conf'):
         config = load_json('/etc/tbbuttonsd.conf')
+    else:
+        raise Exception('Config file not found')
 
     for action in config:
         actionsList[tuple(action["combo"])] = action["command"]
