@@ -1,12 +1,12 @@
 from __future__ import print_function
-import subprocess, threading, signal
+
+import subprocess, threading, signal, json, os, shlex, Queue
+
 from tingbot.platform_specific.tingbot import register_button_callback
-from Queue import Queue
-import json, os
 
 button_states = ['up', 'up', 'up', 'up']
 actionsList = {}
-queue = Queue()
+queue = Queue.Queue()
 
 def button_callback(button_index, state):
     global button_states, queue
