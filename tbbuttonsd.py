@@ -5,7 +5,7 @@ import subprocess, threading, signal, json, os, shlex, Queue
 from tingbot.platform_specific.tingbot import register_button_callback
 
 button_states = ['up', 'up', 'up', 'up']
-actionsList = {}
+actions = {}
 queue = Queue.Queue()
 
 def button_callback(button_index, state):
@@ -16,8 +16,7 @@ def button_callback(button_index, state):
 def process_combo_events():
     while True:
         combo = queue.get()
-
-        action = actionsList.get(combo)
+        action = actions.get(combo)
 
         if action:
             print('Combo detected:')
@@ -44,7 +43,7 @@ def load_config():
         raise Exception('Config file not found')
 
     for action in config:
-        actionsList[tuple(action["combo"])] = action["command"]
+        actions[tuple(action["combo"])] = action["command"]
      
 def main():
     load_config()
