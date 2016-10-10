@@ -9,15 +9,11 @@ actionsList = {}
 queue = Queue.Queue()
 
 def button_callback(button_index, state):
-    global button_states, queue
-    
     button_states[button_index] = state
 
     queue.put(tuple(button_states))
 
 def process_combo_events():
-    global queue
-    
     while True:
         combo = queue.get()
 
