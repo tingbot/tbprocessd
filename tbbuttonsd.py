@@ -19,10 +19,8 @@ def process_combo_events():
         action = actions.get(combo)
 
         if action:
-            print('Combo detected:')
-            print(combo)
-            print('Action:')
-            print(action)
+            print('Combo detected:', combo)
+            print('Action:', action)
             subprocess.call(shlex.split(action))
 
         queue.task_done()
