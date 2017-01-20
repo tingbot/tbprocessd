@@ -7,6 +7,12 @@ from tingbot.platform_specific.tingbot import register_button_callback
 button_states = ['up', 'up', 'up', 'up']
 actions = {}
 queue = Queue.Queue()
+default_config = [
+    {
+        'combo': ['up', 'down', 'down', 'up'],
+        'command': 'tbopen /apps/home',
+    }
+]
 
 def button_callback(button_index, state):
     button_states[button_index] = state
@@ -38,7 +44,7 @@ def load_config():
     elif os.path.exists('/etc/tbbuttonsd.conf'):
         config = load_json('/etc/tbbuttonsd.conf')
     else:
-        raise Exception('Config file not found')
+        config = default_config
 
     for action in config:
         actions[tuple(action["combo"])] = action["command"]
