@@ -117,6 +117,8 @@ def app_start(app_path):
     if app_process:
         app_stop()
 
+    app_cleanup_environment()
+
     console_message('Starting %s...' % app_path)
 
     args = ['python', '-m', 'tbtool', 'tingbot_run', app_path]
@@ -218,6 +220,19 @@ def app_nonblocking_read(fd):
             return None
         else:
             raise
+
+def app_cleanup_environment():
+    VT_UNLOCKSWITCH = 22028
+    KDSETMODE = 19258
+    KD_TEXT = 0
+    VT_ACTIVATE = 22022
+    from fcntl import ioctl
+
+    with open('/dev/tty0', 'w+') as tty0:
+        original_vt = 1
+        ioctl(tty0, KDSETMODE, KD_TEXT)
+        ioctl(tty0, VT_UNLOCKSWITCH, 1)
+        ioctl(tty0, VT_ACTIVATE, original_vt)
 
 ##############
 # LOG STREAM #
